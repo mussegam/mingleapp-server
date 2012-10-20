@@ -76,5 +76,7 @@ object Linkeduser {
     val groups = groupsList.map(x => ((x \ "group" \ "id").as[String].toInt, (x \ "group" \ "name").as[String]))
 
     val newUser = new Linkeduser(anorm.NotAssigned, linkedId, fullName, headline, pictureURL, numConnections, lastPositionTitle)
+
+    Linkeduser.findById(newUser.linkedId).getOrElse(Linkeduser.create(newUser))
   }
 }

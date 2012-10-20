@@ -11,7 +11,7 @@ object Application extends Controller {
 
   def indexLinkedUsers = Action {
     val users = Linkeduser.all()
-    Ok("Number of linkedusers: "+users.length)
+    Ok("Number of linkedusers: " + users.length)
   }
 
   def createLinkedUser = Action { request =>
