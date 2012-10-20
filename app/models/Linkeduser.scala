@@ -37,9 +37,9 @@ object Linkeduser {
     DB.withConnection { implicit connection =>
       SQL(
         """
-           insert into groups values(
+           insert into linkedusers values(
            (select next value for linkedusers_id_seq),
-           {linkedId}, {name}, {headline}, {picture}, {numConnections}, {lastPosition}
+           {linkedId}, {name}, {headline}, {picture}, {numConnections}, {lastPosition})
         """
       ).on(
         "linkedId" -> user.linkedId,
@@ -70,29 +70,43 @@ object Linkeduser {
 
     // Getting the related entities
     val skills = (json \ "skills" \ "values").as[List[JsValue]].map(x => ((x \ "id").as[Int], (x \ "skill" \ "name").as[String]))
-    val newsList = (json \ "suggestions" \ "toFollow" \ "newsSources" \ "values").as[List[JsValue]]
-    val newsSources = newsList.map(x => ((x \ "id").as[Int], (x \ "name").as[String]))
+    val hasnewsList = (json \ "suggestions" \ "toFollow" \ "newsSources" \ "_total").as[Int]
+    val newsList = if (hasnewsList > 0) (json \ "suggestions" \ "toFollow" \ "newsSources" \ "values").as[List[JsValue]] else List()
+	
+    val newsSources = if (hasnewsList > 0)  newsList.map(x => ((x \ "id").as[Int], (x \ "name").as[String])) else List()
     val groupsList = (json \ "groupMemberships" \ "values").as[List[JsValue]]
     val groups = groupsList.map(x => ((x \ "group" \ "id").as[String].toInt, (x \ "group" \ "name").as[String]))
 
     val newUser = new Linkeduser(anorm.NotAssigned, linkedId, fullName, headline, pictureURL, numConnections, lastPositionTitle)
 
+    val Exists = if ( Linkeduser.findById(newUser.linkedId) != null ) 1 else 0
+
     Linkeduser.findById(newUser.linkedId).getOrElse(Linkeduser.create(newUser))
-    
-    groups.foreach{ case (id,name) => 
-			val newGroup = new Group(anorm.Id(id),name)
-			Group.findById(newGroup.linkedId.get).getOrElse(Group.create(newGroup))
-			Group.link(newGroup.linkedId.get,newUser.linkedId.toLong)
+
+    val Userid =  Linkeduser.findById(newUser.linkedId).get.id.get 
+  
+    if ( Exists == 0 ) { 
+	groups.foreach{ case (id,name) => 
+				val newGroup = new Group(anorm.Id(id),name)
+				Group.findById(newGroup.linkedId.get).getOrElse(Group.create(newGroup))
+				Group.link(newGroup.linkedId.get,Userid)
+   	}
+  	skills.foreach{ case (id,name) => 
+				val newSkill = new Skill(anorm.Id(id),name)
+				Skill.findById(newSkill.linkedId.get).getOrElse(Skill.create(newSkill))
+				Skill.link(newSkill.linkedId.get,Userid)
+	}
+	newsSources.foreach{ case (id,name) => 
+				val newSource = new NewsSource(anorm.Id(id),name)
+				NewsSource.findById(newSource.linkedId.get).getOrElse(NewsSource.create(newSource))
+				NewsSource.link(newSource.linkedId.get,Userid)
+    	}
     }
-    skills.foreach{ case (id,name) => 
-			val newSkill = new Skill(anorm.Id(id),name)
-			Skill.findById(newSkill.linkedId.get).getOrElse(Skill.create(newSkill))
-			Skill.link(newSkill.linkedId.get,newUser.linkedId.toLong)
-    }
-    newsSources.foreach{ case (id,name) => 
-			val newSource = new NewsSource(anorm.Id(id),name)
-			NewsSource.findById(newSource.linkedId.get).getOrElse(NewsSource.create(newSource))
-			NewsSource.link(newSource.linkedId.get,newUser.linkedId.toLong)
+  }
+  //def recommendLinkedUsers(id: String) = {
+  def recommendLinkedUsers(id: String) : List[Linkeduser] = {
+    DB.withConnection { implicit connection =>
+      SQL("select * from linkedusers where linkedusers.linkedId != '" + id + "' order by FLOOR(" + Linkeduser.all.length + " + (RAND() * 1)) limit " + Linkeduser.all.length +" ").as(linkeduser *)
     }
   }
 }

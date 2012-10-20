@@ -21,5 +21,8 @@ object Application extends Controller {
     Ok("create")
   }
 
-  def recommendLinkedUsers(id: String) = TODO
+  def recommendLinkedUsers(id:String) = Action { 
+	val users = Linkeduser.recommendLinkedUsers(id)
+	Ok("Users recommened:" + users)
+  }
 }

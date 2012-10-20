@@ -32,7 +32,7 @@ object Skill {
       SQL(
         """
            insert into skills values(
-           {linkedId}, {name}
+           {linkedId}, {name})
         """
       ).on(
         "linkedId" -> skill.linkedId,
