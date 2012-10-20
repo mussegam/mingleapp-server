@@ -78,5 +78,21 @@ object Linkeduser {
     val newUser = new Linkeduser(anorm.NotAssigned, linkedId, fullName, headline, pictureURL, numConnections, lastPositionTitle)
 
     Linkeduser.findById(newUser.linkedId).getOrElse(Linkeduser.create(newUser))
+    
+    groups.foreach{ case (id,name) => 
+			val newGroup = new Group(anorm.Id(id),name)
+			Group.findById(newGroup.linkedId.get).getOrElse(Group.create(newGroup))
+			Group.link(newGroup.linkedId.get,newUser.linkedId.toLong)
+    }
+    skills.foreach{ case (id,name) => 
+			val newSkill = new Skill(anorm.Id(id),name)
+			Skill.findById(newSkill.linkedId.get).getOrElse(Skill.create(newSkill))
+			Skill.link(newSkill.linkedId.get,newUser.linkedId.toLong)
+    }
+    newsSources.foreach{ case (id,name) => 
+			val newSource = new NewsSource(anorm.Id(id),name)
+			NewsSource.findById(newSource.linkedId.get).getOrElse(NewsSource.create(newSource))
+			NewsSource.link(newSource.linkedId.get,newUser.linkedId.toLong)
+    }
   }
 }

@@ -32,7 +32,7 @@ object NewsSource {
       SQL(
         """
            insert into newssources values(
-           {linkedId}, {name}
+           {linkedId}, {name})
         """
       ).on(
         "linkedId" -> newssource.linkedId,
@@ -40,4 +40,19 @@ object NewsSource {
       ).executeUpdate()
     }
   }
+
+  def link(id_news:Long, id_user: Long) {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+           insert into newssources_users values(
+           {news_id}, {linkeduser_id})
+        """
+      ).on(
+        "news_id" -> id_news, 
+        "linkeduser_id" -> id_user
+      ).executeUpdate()
+    }
+  }
+
 }

@@ -40,4 +40,18 @@ object Skill {
       ).executeUpdate()
     }
   }
+
+  def link(id_skill: Long, id_user: Long) {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+           insert into skills_users values(
+           {skill_id}, {linkeduser_id})
+        """
+      ).on(
+        "skill_id" -> id_skill, 
+        "linkeduser_id" -> id_user
+      ).executeUpdate()
+    }
+   }
 }

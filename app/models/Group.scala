@@ -32,11 +32,25 @@ object Group {
       SQL(
         """
            insert into groups values(
-           {linkedId}, {name}
+           {linkedId}, {name})
         """
       ).on(
         "linkedId" -> group.linkedId,
         "name" -> group.name
+      ).executeUpdate()
+    }
+  }
+
+  def link(id_group: Long, id_user: Long) {
+    DB.withConnection { implicit connection =>
+      SQL(
+        """
+           insert into groups_users values(
+           {group_id}, {linkeduser_id})
+        """
+      ).on(
+        "group_id" -> id_group, 
+        "linkeduser_id" -> id_user
       ).executeUpdate()
     }
   }
