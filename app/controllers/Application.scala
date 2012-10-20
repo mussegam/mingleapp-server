@@ -1,6 +1,5 @@
 package controllers
 
-import play.api._
 import play.api.mvc._
 import models.Linkeduser
 
@@ -15,9 +14,12 @@ object Application extends Controller {
     Ok("Number of linkedusers: "+users.length)
   }
 
-  def createLinkedUser = Action {
+  def createLinkedUser = Action { request =>
+    request.body.asJson.map { json =>
+      Linkeduser.createLinkedUserFromJson(json)
+    }
     Ok("create")
   }
 
-  def recommendLinkedUsers(id: Long) = TODO
+  def recommendLinkedUsers(id: String) = TODO
 }
